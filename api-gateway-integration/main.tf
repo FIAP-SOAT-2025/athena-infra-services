@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "terraform-state-tc3-g38-lanchonete-v1"
+    bucket = "terraform-state-tc5-g192-athena-v1"
     key    = "api-gateway-integration/terraform.tfstate"
     region = "us-east-1"
   }
@@ -9,7 +9,7 @@ terraform {
 data "terraform_remote_state" "infra" {
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc3-g38-lanchonete-v1"
+    bucket = "terraform-state-tc5-g192-athena-v1"
     key    = "infra/terraform.tfstate"
     region = "us-east-1"
   }
@@ -18,7 +18,7 @@ data "terraform_remote_state" "infra" {
 data "terraform_remote_state" "api" {
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc3-g38-lanchonete-v1"
+    bucket = "terraform-state-tc5-g192-athena-v1"
     key    = "api/terraform.tfstate"
     region = "us-east-1"
   }
@@ -66,10 +66,10 @@ resource "aws_apigatewayv2_route" "get_customer_route" {
 }
 
 
-resource "aws_apigatewayv2_integration" "lanchonete_integration" {
+resource "aws_apigatewayv2_integration" "athena_integration" {
   api_id             = data.terraform_remote_state.infra.outputs.api_gateway_id
   integration_type   = "HTTP_PROXY"
-  integration_uri    = data.terraform_remote_state.api.outputs.lanchonete_api_listener_arn
+  integration_uri    = data.terraform_remote_state.api.outputs.athena_api_listener_arn
   connection_type    = "VPC_LINK"
   connection_id      = data.terraform_remote_state.infra.outputs.vpc_link_id
   integration_method = "ANY"
@@ -78,7 +78,7 @@ resource "aws_apigatewayv2_integration" "lanchonete_integration" {
 resource "aws_apigatewayv2_route" "proxy_route" {
   api_id    = data.terraform_remote_state.infra.outputs.api_gateway_id
   route_key = "ANY /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.lanchonete_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.athena_integration.id}"
 
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito_jwt_authorizer.id
@@ -88,7 +88,7 @@ resource "aws_apigatewayv2_route" "proxy_route" {
 resource "aws_apigatewayv2_route" "root_route" {
   api_id    = data.terraform_remote_state.infra.outputs.api_gateway_id
   route_key = "ANY /"
-  target    = "integrations/${aws_apigatewayv2_integration.lanchonete_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.athena_integration.id}"
 
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito_jwt_authorizer.id
@@ -98,11 +98,11 @@ resource "aws_apigatewayv2_route" "root_route" {
 resource "aws_apigatewayv2_route" "swagger_ui_root" {
   api_id    = data.terraform_remote_state.infra.outputs.api_gateway_id
   route_key = "GET /api"
-  target    = "integrations/${aws_apigatewayv2_integration.lanchonete_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.athena_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "swagger_ui_assets" {
   api_id    = data.terraform_remote_state.infra.outputs.api_gateway_id
   route_key = "GET /api/{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.lanchonete_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.athena_integration.id}"
 }

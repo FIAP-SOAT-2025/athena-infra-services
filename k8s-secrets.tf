@@ -1,11 +1,11 @@
 resource "kubectl_manifest" "secrets" {
-  depends_on = [kubernetes_namespace.lanchonete_ns]
+  depends_on = [kubernetes_namespace.athena_ns]
   yaml_body  = <<YAML
 apiVersion: v1
 kind: Secret
 metadata:
   name: api-secrets
-  namespace: lanchonete-tc2
+  namespace: athena-tc5
 type: Opaque
 data:
   DB_USER: ${base64encode(var.db_user)}

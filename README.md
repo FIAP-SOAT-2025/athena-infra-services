@@ -21,7 +21,7 @@ A arquitetura consiste nos seguintes componentes:
 Antes de iniciar, certifique-se de que os seguintes pré-requisitos sejam atendidos:
 
 - Um cluster EKS existente.
-- Um namespace de banco de dados (`lanchonete-db`) com um serviço de banco de dados em execução.
+- Um namespace de banco de dados (`athena-db`) com um serviço de banco de dados em execução.
 - As credenciais da AWS configuradas corretamente no ambiente onde o Terraform será executado.
 - O backend do Terraform (S3 bucket) criado para armazenar o estado remoto.
 

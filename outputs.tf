@@ -5,12 +5,12 @@ output "api_service_name" {
 
 output "api_namespace" {
   description = "Namespace da API"
-  value       = "lanchonete-tc2"
+  value       = "athena-tc5"
 }
 
 
-output "lanchonete_api_listener_arn" {
-  description = "The ARN of the NLB Listener for the Lanchonete API service."
+output "athena_api_listener_arn" {
+  description = "The ARN of the NLB Listener for the Athena API service."
   value       = data.aws_lb_listener.api_listener.arn
 }
 

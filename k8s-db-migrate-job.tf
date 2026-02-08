@@ -5,7 +5,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: db-migrate-seed-job
-  namespace: lanchonete-tc2
+  namespace: athena-tc5
 spec:
   template:
     spec:

@@ -1,6 +1,6 @@
 resource "kubectl_manifest" "deployment" {
   depends_on = [
-    kubernetes_namespace.lanchonete_ns,
+    kubernetes_namespace.athena_ns,
     kubectl_manifest.db_migrate_job,
     kubectl_manifest.secrets,
     kubectl_manifest.configmap
@@ -9,17 +9,17 @@ resource "kubectl_manifest" "deployment" {
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lanchonete-api
-  namespace: lanchonete-tc2
+  name: athena-api
+  namespace: athena-tc5
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: lanchonete-api
+      app: athena-api
   template:
     metadata:
       labels:
-        app: lanchonete-api
+        app: athena-api
     spec:
       containers:
       - name: api

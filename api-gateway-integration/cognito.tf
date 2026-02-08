@@ -1,5 +1,5 @@
 resource "aws_cognito_user_pool" "customer_pool" {
-  name = "lanchonete-customer-pool"
+  name = "athena-customer-pool"
 
   schema {
     name = "cpf"
@@ -21,7 +21,7 @@ resource "aws_cognito_user_pool" "customer_pool" {
   auto_verified_attributes = ["email"]
 
   tags = {
-    Project = "Lanchonete"
+    Project = "Athena"
   }
 }
 

@@ -1,7 +1,7 @@
 resource "kubernetes_ingress_v1" "api_ingress" {
   metadata {
     name      = "api-ingress"
-    namespace = "lanchonete-tc2"
+    namespace = "athena-tc5"
     annotations = {
       "kubernetes.io/ingress.class" : "alb",
       "alb.ingress.kubernetes.io/scheme" : "internal",
@@ -28,5 +28,5 @@ resource "kubernetes_ingress_v1" "api_ingress" {
     }
   }
 
-  depends_on = [kubernetes_namespace.lanchonete_ns]
+  depends_on = [kubernetes_namespace.athena_ns]
 }

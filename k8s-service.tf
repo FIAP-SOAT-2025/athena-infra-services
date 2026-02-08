@@ -1,14 +1,14 @@
 resource "kubernetes_service" "api_service" {
   metadata {
     name      = "api-service"
-    namespace = "lanchonete-tc2"
+    namespace = "athena-tc5"
     annotations = {
       "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
     }
   }
   spec {
     selector = {
-      app = "lanchonete-api"
+      app = "athena-api"
     }
     port {
       protocol    = "TCP"
@@ -17,5 +17,5 @@ resource "kubernetes_service" "api_service" {
     }
     type = "LoadBalancer"
   }
-  depends_on = [kubernetes_namespace.lanchonete_ns]
+  depends_on = [kubernetes_namespace.athena_ns]
 }

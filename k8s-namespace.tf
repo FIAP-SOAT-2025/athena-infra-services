@@ -1,5 +1,5 @@
-resource "kubernetes_namespace" "lanchonete_ns" {
+resource "kubernetes_namespace" "athena_ns" {
   metadata {
-    name = "lanchonete-tc2"
+    name = "athena-tc5"
   }
 }

@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "projectName" {
   description = "The name of the project"
-  default     = "tc3-g38-lanchonete-v1"
+  default     = "tc5-g192-athena-v1"
 }
 
 variable "db_service_name" {
@@ -17,7 +17,7 @@ variable "db_service_name" {
 variable "db_namespace" {
   description = "Namespace do banco de dados"
   type        = string
-  default     = "lanchonete-db"
+  default     = "athena-db"
 }
 
 variable "db_user" {

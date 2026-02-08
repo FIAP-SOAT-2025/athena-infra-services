@@ -10,7 +10,7 @@ output "api_gateway_target_hostname" {
 
 output "integration_id" {
   description = "ID da integração criada."
-  value       = aws_apigatewayv2_integration.lanchonete_integration.id
+  value       = aws_apigatewayv2_integration.athena_integration.id
 }
 
 output "api_gateway_invoke_url" {

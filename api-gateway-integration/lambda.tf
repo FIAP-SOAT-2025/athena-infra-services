@@ -4,7 +4,7 @@ data "aws_partition" "current" {}
 
 resource "aws_lambda_function" "create_customer" {
   function_name    = "CreateCustomer"
-  s3_bucket     = "lambda-code-tc3-g38"
+  s3_bucket     = " lambda-code-tc5-g192"
   s3_key        = "create-customer.zip"
   handler = "index.handler"
   runtime = "nodejs18.x"
@@ -24,7 +24,7 @@ resource "aws_lambda_function" "create_customer" {
 
 resource "aws_lambda_function" "get_customer_by_cpf" {
   function_name    = "GetCustomerByCPF"
-  s3_bucket     = "lambda-code-tc3-g38"
+  s3_bucket     = " lambda-code-tc5-g192"
   s3_key        = "get-customer.zip"
 
   handler = "index.handler"

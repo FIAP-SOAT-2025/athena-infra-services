@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: tlnob/tc2-g38:latest
+        image:  dianabianca/tc5-athena:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: migrate-db
-        image: tlnob/tc2-g38:latest
+        image:  dianabianca/tc5-athena:latest
         imagePullPolicy: IfNotPresent
         command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
         envFrom:

@@ -22,7 +22,7 @@ on:
 env:
   AWS_REGION: us-east-1
   TF_VERSION: 1.6.0
-  EKS_CLUSTER_NAME: eks-tc5-g192-athena
+  EKS_CLUSTER_NAME: eks-tc5-g192-athena-v1
 
 jobs:
   check-dependencies:
@@ -258,7 +258,14 @@ jobs:
 
       - name: Check AWS Credentials
         run: aws sts get-caller-identity
-        
+
+      - name: Check API state exists
+        run: |
+          aws s3api head-object \
+            --bucket terraform-state-tc5-g192-athena-v1 \
+            --key api/terraform.tfstate > /dev/null 2>&1 || \
+          (echo "::error::api/terraform.tfstate não encontrado no S3. Execute o workflow com action 'apply' antes de rodar 'api-gateway-integration'." && exit 1)
+
       - name: Terraform Init
         run: terraform init
 

@@ -43,3 +43,9 @@ variable "db_name" {
   description = "O nome do banco de dados inicial a ser criado na instância RDS."
   type        = string
 }
+
+variable "jwt_secret" {
+  description = "Secret key for JWT authentication."
+  type        = string
+  sensitive   = true
+}

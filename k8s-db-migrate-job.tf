@@ -13,7 +13,7 @@ spec:
       - name: migrate-db
         image:  dianabianca/tc5-athena:latest
         imagePullPolicy: IfNotPresent
-        command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+        command: ["sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js"]
         envFrom:
         - configMapRef:
             name: api-configmap

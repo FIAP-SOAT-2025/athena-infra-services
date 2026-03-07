@@ -44,7 +44,6 @@ jobs:
       - name: Check Dependencies
         id: check-deps
         run: |
-          # Check EKS cluster
           if aws eks describe-cluster --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }} &> /dev/null; then
             echo "infra-exists=true" >> $GITHUB_OUTPUT
             echo "EKS cluster exists"
@@ -58,7 +57,7 @@ jobs:
     needs: [check-dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: needs.check-dependencies.outputs.infra-exists == 'true' && github.event.inputs.action == 'apply'
+    if: needs.check-dependencies.outputs.infra-exists == 'true' && (github.event.inputs.action == 'apply' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     defaults:
       run:
         working-directory: ./
@@ -100,7 +99,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -parallelism=20 -out=tfplan
+        run: terraform plan -refresh=false -parallelism=20 -out=tfplan
 
       - name: Terraform Apply
         run: terraform apply -parallelism=20 -auto-approve tfplan
@@ -133,8 +132,7 @@ jobs:
             }'
           kubectl wait --for=condition=ready pod/db-migrate-seed-job -n athena-tc5 --timeout=60s || true
           kubectl logs -n athena-tc5 db-migrate-seed-job --follow || true
-          kubectl wait --for=condition=completed pod/db-migrate-seed-job -n athena-tc5 --timeout=180s || \
-            kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/db-migrate-seed-job -n athena-tc5 --timeout=180s
+          kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/db-migrate-seed-job -n athena-tc5 --timeout=180s
           echo "Migration completed."
 
       - name: Verify API Deployment
@@ -248,8 +246,6 @@ jobs:
         run: |
           if [ -f "terraform.tfstate" ]; then
             echo "state-exists=true" >> $GITHUB_OUTPUT
-            echo "Terraform state found. Contents:"
-            cat terraform.tfstate
           else
             echo "state-exists=false" >> $GITHUB_OUTPUT
             echo "No Terraform state found"
@@ -310,7 +306,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -parallelism=20 -out=tfplan
+        run: terraform plan -refresh=false -parallelism=20 -out=tfplan
 
       - name: Terraform Apply
         run: terraform apply -parallelism=20 -auto-approve tfplan

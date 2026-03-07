@@ -49,3 +49,22 @@ variable "jwt_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "aws_access_key_id" {
+  description = "AWS Access Key ID for S3 access."
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS Secret Access Key for S3 access."
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_session_token" {
+  description = "AWS Session Token for S3 access."
+  type        = string
+  sensitive   = true
+  default     = ""
+}

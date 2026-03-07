@@ -11,7 +11,7 @@ data:
   REDIS_PORT: "6379"
   NODE_TLS_REJECT_UNAUTHORIZED: "0"
   AWS_REGION: "us-east-1"
-  AWS_S3_BUCKET: "athena-videos"
+  AWS_S3_BUCKET: "athena-videos-tc5-g192-v1"
 
 YAML
 }

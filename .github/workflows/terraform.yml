@@ -108,6 +108,12 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=athena-api -n athena-tc5 --timeout=300s
           kubectl get pods -n athena-tc5
           kubectl get services -n athena-tc5
+
+      - name: Verify Videoprocessor Deployment
+        run: |
+          echo "Waiting for videoprocessor pod to be ready..."
+          kubectl wait --for=condition=ready pod -l app=athena-videoprocessor -n athena-tc5 --timeout=300s
+          kubectl get pods -n athena-tc5 -l app=athena-videoprocessor
       
       - name: Get LoadBalancer URL
         id: get-url

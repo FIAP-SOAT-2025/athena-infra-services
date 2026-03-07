@@ -1,7 +1,6 @@
 resource "kubectl_manifest" "deployment" {
   depends_on = [
     kubernetes_namespace.athena_ns,
-    kubectl_manifest.db_migrate_job,
     kubectl_manifest.secrets,
     kubectl_manifest.configmap
   ]

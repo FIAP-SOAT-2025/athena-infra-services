@@ -31,7 +31,7 @@ jobs:
     environment: production
     outputs:
       infra-exists: ${{ steps.check-deps.outputs.infra-exists }}
-    
+
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -40,7 +40,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
-      
+
       - name: Check Dependencies
         id: check-deps
         run: |
@@ -52,10 +52,12 @@ jobs:
             echo "infra-exists=false" >> $GITHUB_OUTPUT
             echo "EKS cluster not found"
           fi
+
   terraform-apply:
     name: API Deploy
     needs: [check-dependencies]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: needs.check-dependencies.outputs.infra-exists == 'true' && github.event.inputs.action == 'apply'
     defaults:
       run:
@@ -70,12 +72,12 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -83,26 +85,58 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
-      
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.28.0'
-      
+
       - name: Configure kubectl
         run: |
           aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
           kubectl get nodes
-      
+
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-      
+        run: terraform plan -parallelism=20 -out=tfplan
+
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
-      
+        run: terraform apply -parallelism=20 -auto-approve tfplan
+
+      - name: Run DB Migration
+        run: |
+          echo "Running DB migration job..."
+          kubectl delete job db-migrate-seed-job -n athena-tc5 --ignore-not-found
+          kubectl run db-migrate-seed-job \
+            --image=dianabianca/tc5-athena:latest \
+            --restart=Never \
+            --namespace=athena-tc5 \
+            --overrides='{
+              "spec": {
+                "containers": [{
+                  "name": "db-migrate-seed-job",
+                  "image": "dianabianca/tc5-athena:latest",
+                  "imagePullPolicy": "IfNotPresent",
+                  "command": ["sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js"],
+                  "envFrom": [
+                    {"configMapRef": {"name": "api-configmap"}},
+                    {"secretRef": {"name": "api-secrets"}}
+                  ],
+                  "resources": {
+                    "requests": {"memory": "256Mi", "cpu": "100m"},
+                    "limits": {"memory": "512Mi", "cpu": "200m"}
+                  }
+                }]
+              }
+            }'
+          kubectl wait --for=condition=ready pod/db-migrate-seed-job -n athena-tc5 --timeout=60s || true
+          kubectl logs -n athena-tc5 db-migrate-seed-job --follow || true
+          kubectl wait --for=condition=completed pod/db-migrate-seed-job -n athena-tc5 --timeout=180s || \
+            kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/db-migrate-seed-job -n athena-tc5 --timeout=180s
+          echo "Migration completed."
+
       - name: Verify API Deployment
         run: |
           echo "Waiting for API pod to be ready..."
@@ -115,7 +149,7 @@ jobs:
           echo "Waiting for videoprocessor pod to be ready..."
           kubectl wait --for=condition=ready pod -l app=athena-videoprocessor -n athena-tc5 --timeout=300s
           kubectl get pods -n athena-tc5 -l app=athena-videoprocessor
-      
+
       - name: Get LoadBalancer URL
         id: get-url
         run: |
@@ -129,7 +163,7 @@ jobs:
             echo "LoadBalancer still provisioning..."
             echo "loadbalancer-url=pending" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Health Check
         if: steps.get-url.outputs.loadbalancer-url != 'pending'
         run: |
@@ -144,7 +178,7 @@ jobs:
               sleep 30
             fi
           done
-      
+
       - name: Output API Info
         run: |
           echo "API deployed successfully!"
@@ -155,6 +189,7 @@ jobs:
   terraform-destroy:
     name: API Destroy
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.event.inputs.action == 'destroy'
     defaults:
       run:
@@ -169,12 +204,12 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -182,12 +217,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
-      
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.28.0'
-      
+
       - name: Check if EKS cluster exists
         id: check-cluster
         run: |
@@ -198,16 +233,16 @@ jobs:
             echo "cluster-exists=false" >> $GITHUB_OUTPUT
             echo "EKS cluster not found, skipping kubectl configuration"
           fi
-      
+
       - name: Configure kubectl
         if: steps.check-cluster.outputs.cluster-exists == 'true'
         run: |
           aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
           kubectl get nodes || echo "Failed to get nodes, but continuing..."
-      
+
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Check Terraform State
         id: check-state
         run: |
@@ -219,18 +254,18 @@ jobs:
             echo "state-exists=false" >> $GITHUB_OUTPUT
             echo "No Terraform state found"
           fi
-      
+
       - name: Terraform Plan Destroy
         if: steps.check-state.outputs.state-exists == 'true'
-        run: terraform plan -destroy -no-color
+        run: terraform plan -destroy -parallelism=20 -no-color
         continue-on-error: true
-      
+
       - name: Terraform Destroy
         if: steps.check-state.outputs.state-exists == 'true'
         run: |
           echo "Destroying API infrastructure..."
-          terraform destroy -auto-approve
-      
+          terraform destroy -parallelism=20 -auto-approve
+
       - name: Verify Destruction
         run: |
           echo "Verifying resource destruction..."
@@ -242,6 +277,7 @@ jobs:
   terraform-api-gateway-integration-deploy:
     name: API Gateway Integration Deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.event.inputs.action == 'api-gateway-integration'
     environment: production
     defaults:
@@ -255,7 +291,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -266,15 +302,15 @@ jobs:
 
       - name: Check AWS Credentials
         run: aws sts get-caller-identity
-        
+
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Validate
         run: terraform validate
-      
+
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-      
+        run: terraform plan -parallelism=20 -out=tfplan
+
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -parallelism=20 -auto-approve tfplan

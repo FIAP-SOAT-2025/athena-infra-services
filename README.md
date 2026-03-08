@@ -55,6 +55,26 @@ Principais variáveis:
     terraform apply
     ```
 
+## Monitoramento
+
+### Grafana
+
+- **URL do dashboard (videoprocessor):**
+  - `http://a47ace00215804995b332231503aa9b0-1288968530.us-east-1.elb.amazonaws.com/d/athena-videoprocessor/athena-videoprocessor-overview`
+- **URL de login:**
+  - `http://a47ace00215804995b332231503aa9b0-1288968530.us-east-1.elb.amazonaws.com/login`
+- **Usuário:** `admin`
+- **Senha:** `AthenaGrafana@2026`
+
+### Rotas de monitoramento da aplicação
+
+- **Videoprocessor metrics (externo):**
+  - `http://adf0e856fe7504ea5b9c74e69c7c1688-df351a2f6fdf1140.elb.us-east-1.amazonaws.com/metrics`
+- **Videoprocessor health (externo):**
+  - `http://adf0e856fe7504ea5b9c74e69c7c1688-df351a2f6fdf1140.elb.us-east-1.amazonaws.com/health`
+- **Videoprocessor metrics (interno cluster):**
+  - `http://videoprocessor-service.athena-tc5.svc.cluster.local:8000/metrics`
+
 ### Destruição da Infraestrutura
 
 Para remover todos os recursos criados pelo Terraform, execute:

@@ -2,6 +2,12 @@ resource "kubernetes_service" "videoprocessor_service" {
   metadata {
     name      = "videoprocessor-service"
     namespace = "athena-tc5"
+    annotations = {
+      "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
+      "prometheus.io/scrape"                              = "true"
+      "prometheus.io/path"                                = "/metrics"
+      "prometheus.io/port"                                = "8000"
+    }
   }
 
   spec {
@@ -11,11 +17,11 @@ resource "kubernetes_service" "videoprocessor_service" {
 
     port {
       protocol    = "TCP"
-      port        = 8000
+      port        = 80
       target_port = 8000
     }
 
-    type = "ClusterIP"
+    type = "LoadBalancer"
   }
 
   depends_on = [

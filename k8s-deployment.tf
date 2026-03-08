@@ -2,7 +2,8 @@ resource "kubectl_manifest" "deployment" {
   depends_on = [
     kubernetes_namespace.athena_ns,
     kubectl_manifest.secrets,
-    kubectl_manifest.configmap
+    kubectl_manifest.configmap,
+    kubectl_manifest.db_migrate_job
   ]
   yaml_body = <<YAML
 apiVersion: apps/v1
@@ -22,7 +23,7 @@ spec:
     spec:
       containers:
       - name: api
-        image:  dianabianca/tc5-athena:latest
+        image:  fealves/athena_api:v1
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

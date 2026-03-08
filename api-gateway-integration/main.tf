@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
-    bucket = "terraform-state-tc5-g192-athena-v1"
-    key    = "api-gateway-integration/terraform.tfstate"
+    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
+    key    = "tc5-g192-athena-v1-felipe/api-gateway-integration/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -9,8 +9,8 @@ terraform {
 data "terraform_remote_state" "infra" {
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc5-g192-athena-v1"
-    key    = "infra/terraform.tfstate"
+    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
+    key    = "tc5-g192-athena-v1-felipe/infra/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -18,8 +18,8 @@ data "terraform_remote_state" "infra" {
 data "terraform_remote_state" "api" {
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc5-g192-athena-v1"
-    key    = "api/terraform.tfstate"
+    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
+    key    = "tc5-g192-athena-v1-felipe/api/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -42,15 +42,15 @@ resource "aws_apigatewayv2_authorizer" "cognito_jwt_authorizer" {
 }
 
 resource "aws_apigatewayv2_integration" "create_customer_lambda_integration" {
-  api_id             = data.terraform_remote_state.infra.outputs.api_gateway_id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.create_customer.invoke_arn
+  api_id           = data.terraform_remote_state.infra.outputs.api_gateway_id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.create_customer.invoke_arn
 }
 
 resource "aws_apigatewayv2_integration" "get_customer_lambda_integration" {
-  api_id             = data.terraform_remote_state.infra.outputs.api_gateway_id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.get_customer_by_cpf.invoke_arn
+  api_id           = data.terraform_remote_state.infra.outputs.api_gateway_id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.get_customer_by_cpf.invoke_arn
 }
 
 resource "aws_apigatewayv2_route" "create_customer_route" {

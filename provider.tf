@@ -1,9 +1,10 @@
 terraform {
   backend "s3" {
-    bucket = "terraform-state-tc5-g192-athena-v1"
+    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
     key    = "api/terraform.tfstate"
     region = "us-east-1"
   }
+
 
   required_providers {
     aws = {
@@ -33,11 +34,11 @@ provider "aws" {
 
 # Data sources
 data "aws_eks_cluster" "cluster" {
-  name = "eks-${var.projectName}-v1"
+  name = "eks-${var.projectName}"
 }
 
 data "aws_eks_cluster_auth" "auth" {
-  name = "eks-${var.projectName}-v1"
+  name = "eks-${var.projectName}"
 }
 
 # Configure kubectl provider

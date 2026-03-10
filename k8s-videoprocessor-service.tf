@@ -4,9 +4,6 @@ resource "kubernetes_service" "videoprocessor_service" {
     namespace = "athena-tc5"
     annotations = {
       "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
-      "prometheus.io/scrape"                              = "true"
-      "prometheus.io/path"                                = "/metrics"
-      "prometheus.io/port"                                = "8000"
     }
   }
 

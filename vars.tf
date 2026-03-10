@@ -98,10 +98,3 @@ variable "aws_session_token" {
   sensitive   = true
   default     = ""
 }
-
-variable "grafana_admin_password" {
-  description = "Admin password used by Grafana."
-  type        = string
-  sensitive   = true
-  default     = "AthenaGrafana@2026"
-}

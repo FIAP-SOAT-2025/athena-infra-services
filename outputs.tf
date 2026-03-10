@@ -48,8 +48,3 @@ output "videoprocessor_load_balancer_hostname" {
   description = "Hostname publico do NLB do videoprocessor"
   value       = try(kubernetes_service.videoprocessor_service.status[0].load_balancer[0].ingress[0].hostname, null)
 }
-
-output "videoprocessor_monitoring_url" {
-  description = "URL publica de monitoramento do videoprocessor"
-  value       = try("http://${kubernetes_service.videoprocessor_service.status[0].load_balancer[0].ingress[0].hostname}/metrics", null)
-}

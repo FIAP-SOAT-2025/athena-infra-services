@@ -3,7 +3,8 @@ resource "kubectl_manifest" "videoprocessor_deployment" {
     kubernetes_namespace.athena_ns,
     kubectl_manifest.secrets,
     kubectl_manifest.videoprocessor_configmap,
-    kubectl_manifest.redis_deployment
+    kubectl_manifest.redis_deployment,
+    kubectl_manifest.db_migrate_job
   ]
   yaml_body = <<YAML
 apiVersion: apps/v1

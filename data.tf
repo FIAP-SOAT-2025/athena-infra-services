@@ -17,19 +17,26 @@ data "aws_lb_listener" "api_listener" {
 }
 
 data "terraform_remote_state" "db" {
+  count   = var.use_db_remote_state ? 1 : 0
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc5-g192-athena-v1"
-    key    = "db/terraform.tfstate"
-    region = "us-east-1"
+    bucket = var.remote_state_bucket_name
+    key    = "${var.projectName}/db/terraform.tfstate"
+    region = var.aws_region
   }
 }
 
 data "terraform_remote_state" "infra" {
+  count   = var.use_infra_remote_state ? 1 : 0
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc5-g192-athena-v1"
-    key    = "infra/terraform.tfstate"
-    region = "us-east-1"
+    bucket = var.remote_state_bucket_name
+    key    = "${var.projectName}/infra/terraform.tfstate"
+    region = var.aws_region
   }
+}
+
+locals {
+  db_host = var.use_db_remote_state ? data.terraform_remote_state.db[0].outputs.db_instance_address : "${var.db_service_name}.${var.db_namespace}.svc.cluster.local"
+  db_port = var.use_db_remote_state ? data.terraform_remote_state.db[0].outputs.db_instance_port : var.db_port
 }

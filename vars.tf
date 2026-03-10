@@ -5,19 +5,19 @@ variable "aws_region" {
 
 variable "projectName" {
   description = "The name of the project"
-  default     = "tc5-g192-athena-v1-felipe"
+  default     = "tc5-g192-athena-v1"
 }
 
 variable "videos_bucket_name" {
   description = "S3 bucket used to store Athena videos."
   type        = string
-  default     = "athena-videos-tc5-g192-v1-felipe"
+  default     = "athena-videos-tc5-g192-v1"
 }
 
 variable "remote_state_bucket_name" {
   description = "S3 bucket name containing shared Terraform remote states (db/infra)."
   type        = string
-  default     = "terraform-state-tc5-g192-athena-v1-felipe"
+  default     = "terraform-state-tc5-g192-athena-v1"
 }
 
 variable "use_db_remote_state" {

@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
-    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
-    key    = "tc5-g192-athena-v1-felipe/api-gateway-integration/terraform.tfstate"
+    bucket = "terraform-state-tc5-g192-athena-v1"
+    key    = "tc5-g192-athena-v1/api-gateway-integration/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -9,8 +9,8 @@ terraform {
 data "terraform_remote_state" "infra" {
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
-    key    = "tc5-g192-athena-v1-felipe/infra/terraform.tfstate"
+    bucket = "terraform-state-tc5-g192-athena-v1"
+    key    = "tc5-g192-athena-v1/infra/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -18,8 +18,8 @@ data "terraform_remote_state" "infra" {
 data "terraform_remote_state" "api" {
   backend = "s3"
   config = {
-    bucket = "terraform-state-tc5-g192-athena-v1-felipe"
-    key    = "tc5-g192-athena-v1-felipe/api/terraform.tfstate"
+    bucket = "terraform-state-tc5-g192-athena-v1"
+    key    = "tc5-g192-athena-v1/api/terraform.tfstate"
     region = "us-east-1"
   }
 }

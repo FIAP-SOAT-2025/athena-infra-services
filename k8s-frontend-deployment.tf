@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: fealves/athena_frontend:v2
+        image: dianabianca/tc5-athena-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

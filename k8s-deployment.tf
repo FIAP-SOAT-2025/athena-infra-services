@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: api
-        image:  fealves/athena_api:v1
+        image: dianabianca/tc5-athena:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

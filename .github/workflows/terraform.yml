@@ -109,34 +109,33 @@ jobs:
 
       - name: Run DB Migration
         run: |
-          echo "Running DB migration job..."
-          kubectl delete job db-migrate-seed-job -n athena-tc5 --ignore-not-found
-          kubectl run db-migrate-seed-job \
-            --image=dianabianca/tc5-athena:latest \
-            --restart=Never \
-            --namespace=athena-tc5 \
-            --overrides='{
-              "spec": {
-                "containers": [{
-                  "name": "db-migrate-seed-job",
-                  "image": "dianabianca/tc5-athena:latest",
-                  "imagePullPolicy": "IfNotPresent",
-                  "command": ["sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js"],
-                  "envFrom": [
-                    {"configMapRef": {"name": "api-configmap"}},
-                    {"secretRef": {"name": "api-secrets"}}
-                  ],
-                  "resources": {
-                    "requests": {"memory": "256Mi", "cpu": "100m"},
-                    "limits": {"memory": "512Mi", "cpu": "200m"}
-                  }
-                }]
-              }
-            }'
-          kubectl wait --for=condition=ready pod/db-migrate-seed-job -n athena-tc5 --timeout=60s || true
-          kubectl logs -n athena-tc5 db-migrate-seed-job --follow || true
-          kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/db-migrate-seed-job -n athena-tc5 --timeout=180s
-          echo "Migration completed."
+          echo "Checking DB migration job status..."
+          
+          # Aguardar o job de migração criado pelo Terraform
+          echo "Waiting for db-migrate-seed-job to be ready..."
+          kubectl wait --for=condition=ready pod -l job-name=db-migrate-seed-job -n athena-tc5 --timeout=120s || echo "Job pod not ready yet, checking status..."
+          
+          # Verificar se o job existe e seu status
+          if kubectl get job db-migrate-seed-job -n athena-tc5 &> /dev/null; then
+            echo "Job db-migrate-seed-job found, checking status..."
+            kubectl describe job db-migrate-seed-job -n athena-tc5
+            
+            # Aguardar conclusão do job
+            kubectl wait --for=condition=complete job/db-migrate-seed-job -n athena-tc5 --timeout=300s || {
+              echo "Job did not complete in time, checking logs..."
+              kubectl logs -l job-name=db-migrate-seed-job -n athena-tc5 --tail=50 || true
+              kubectl describe job db-migrate-seed-job -n athena-tc5
+              exit 1
+            }
+            
+            echo "Migration job completed successfully!"
+            kubectl logs -l job-name=db-migrate-seed-job -n athena-tc5 --tail=20 || true
+            
+          else
+            echo "Job db-migrate-seed-job not found, it should have been created by Terraform apply"
+            kubectl get jobs -n athena-tc5
+            exit 1
+          fi
 
       - name: Verify API Deployment
         run: |

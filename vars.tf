@@ -23,7 +23,7 @@ variable "remote_state_bucket_name" {
 variable "use_db_remote_state" {
   description = "When true, reads database host/port from db remote state."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "use_infra_remote_state" {

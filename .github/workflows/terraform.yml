@@ -2,11 +2,17 @@ name: API Deploy
 
 on:
   push:
-    branches: [main, develop]
-    paths: ['/**']
+    branches: [main]
+    paths-ignore: 
+      - 'README.md'
+      - 'docs/**'
+      - '*.md'
   pull_request:
     branches: [main]
-    paths: ['/**']
+    paths-ignore: 
+      - 'README.md'
+      - 'docs/**'
+      - '*.md'
   workflow_dispatch:
     inputs:
       action:
@@ -29,6 +35,7 @@ jobs:
     name: Check Dependencies
     runs-on: ubuntu-latest
     environment: production
+    if: github.event_name != 'pull_request'
     outputs:
       infra-exists: ${{ steps.check-deps.outputs.infra-exists }}
 
@@ -57,7 +64,7 @@ jobs:
     needs: [check-dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: needs.check-dependencies.outputs.infra-exists == 'true' && (github.event.inputs.action == 'apply' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    if: needs.check-dependencies.outputs.infra-exists == 'true' && (github.event.inputs.action == 'apply' || github.ref == 'refs/heads/main')
     defaults:
       run:
         working-directory: ./
@@ -107,12 +114,58 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -parallelism=20 -auto-approve tfplan
 
-      - name: Run DB Migration
+      - name: Cleanup and Run DB Migration
         run: |
-          echo "Checking DB migration job status..."
+          echo "Cleaning up any existing migration job..."
+          kubectl delete job db-migrate-seed-job -n athena-tc5 --ignore-not-found=true
+          kubectl wait --for=delete job/db-migrate-seed-job -n athena-tc5 --timeout=60s || true
           
-          # Aguardar o job de migração criado pelo Terraform
-          echo "Waiting for db-migrate-seed-job to be ready..."
+          echo "Creating migration job..."
+          kubectl apply -f - <<EOF
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-migrate-seed-job
+            namespace: athena-tc5
+          spec:
+            backoffLimit: 4
+            template:
+              spec:
+                initContainers:
+                - name: create-db-if-missing
+                  image: postgres:16-alpine
+                  imagePullPolicy: IfNotPresent
+                  command:
+                  - sh
+                  - -c
+                  - 'PGPASSWORD="\$DB_PASSWORD" psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='\$DB_NAME'" | grep -q 1 || PGPASSWORD="\$DB_PASSWORD" psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -d postgres -c "CREATE DATABASE \"\$DB_NAME\";"'
+                  envFrom:
+                  - secretRef:
+                      name: api-secrets
+                containers:
+                - name: migrate-db
+                  image: danielaqueiroz/tc5-athena:latest
+                  imagePullPolicy: IfNotPresent
+                  command:
+                  - sh
+                  - -c
+                  - npx prisma migrate deploy && (command -v ts-node >/dev/null 2>&1 && npx prisma db seed || echo 'ts-node not found, skipping seed')
+                  envFrom:
+                  - configMapRef:
+                      name: api-configmap
+                  - secretRef:
+                      name: api-secrets
+                  resources:
+                    requests:
+                      memory: 256Mi
+                      cpu: 100m
+                    limits:
+                      memory: 512Mi
+                      cpu: 200m
+                restartPolicy: Never
+          EOF
+          
+          echo "Waiting for migration job to be ready..."
           kubectl wait --for=condition=ready pod -l job-name=db-migrate-seed-job -n athena-tc5 --timeout=120s || echo "Job pod not ready yet, checking status..."
           
           # Verificar se o job existe e seu status
@@ -132,7 +185,7 @@ jobs:
             kubectl logs -l job-name=db-migrate-seed-job -n athena-tc5 --tail=20 || true
             
           else
-            echo "Job db-migrate-seed-job not found, it should have been created by Terraform apply"
+            echo "Job db-migrate-seed-job not found after creation attempt"
             kubectl get jobs -n athena-tc5
             exit 1
           fi

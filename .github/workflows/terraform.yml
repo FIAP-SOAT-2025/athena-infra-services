@@ -23,7 +23,6 @@ on:
         options:
           - apply
           - destroy
-          - api-gateway-integration
 
 env:
   AWS_REGION: us-east-1
@@ -63,7 +62,7 @@ jobs:
     needs: [check-dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: needs.check-dependencies.outputs.infra-exists == 'true' && (github.event.inputs.action == 'apply' || github.event_name == 'push')
+    if: github.event.inputs.action == 'apply'
     defaults:
       run:
         working-directory: ./

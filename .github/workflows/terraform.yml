@@ -138,7 +138,9 @@ jobs:
                   command:
                   - sh
                   - -c
-                  - 'PGPASSWORD="\$DB_PASSWORD" psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='\$DB_NAME'" | grep -q 1 || PGPASSWORD="\$DB_PASSWORD" psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -d postgres -c "CREATE DATABASE \"\$DB_NAME\";"'
+                  - |
+                    PGPASSWORD="\$DB_PASSWORD" psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='\$DB_NAME'" | grep -q 1 || \
+                    PGPASSWORD="\$DB_PASSWORD" psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -d postgres -c "CREATE DATABASE \"\$DB_NAME\";"
                   envFrom:
                   - secretRef:
                       name: api-secrets
@@ -149,7 +151,9 @@ jobs:
                   command:
                   - sh
                   - -c
-                  - npx prisma migrate deploy && (command -v ts-node >/dev/null 2>&1 && npx prisma db seed || echo 'ts-node not found, skipping seed')
+                  - |
+                    npx prisma migrate deploy && \
+                    (command -v ts-node >/dev/null 2>&1 && npx prisma db seed || echo 'ts-node not found, skipping seed')
                   envFrom:
                   - configMapRef:
                       name: api-configmap

@@ -146,7 +146,7 @@ jobs:
                       name: api-secrets
                 containers:
                 - name: migrate-db
-                  image: danielaqueiroz/tc5-athena:latest
+                  image: dianabianca/tc5-athena:latest
                   imagePullPolicy: IfNotPresent
                   command:
                   - sh

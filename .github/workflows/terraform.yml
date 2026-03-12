@@ -63,7 +63,7 @@ jobs:
     needs: [check-dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: needs.check-dependencies.outputs.infra-exists == 'true' && (github.event.inputs.action == 'apply' || github.ref == 'refs/heads/main')
+    if: needs.check-dependencies.outputs.infra-exists == 'true' && (github.event.inputs.action == 'apply' || github.event_name == 'push')
     defaults:
       run:
         working-directory: ./
